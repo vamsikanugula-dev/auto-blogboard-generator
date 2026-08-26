@@ -59,8 +59,8 @@ END (Publish to Supabase)
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/KalyanM45/BlogBoard-AI-Blog-Generator.git
-cd BlogBoard-AI-Blog-Generator
+git clone https://github.com/vamsikanugula-dev/auto-blogboard-generator.git
+cd auto-blogboard-generator
 ```
 
 2. **Create virtual environment**

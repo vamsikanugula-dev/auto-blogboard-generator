@@ -269,11 +269,6 @@ async function loadCategoryArticles(category) {
 
         try {
 
-            console.log(
-                `[BlogBoard] Loading category: ${category}`
-            );
-
-
             const response =
                 await fetchWithTimeout(url, {
                     method: 'GET',
@@ -329,10 +324,6 @@ async function loadCategoryArticles(category) {
 
             _cache[category] = data;
 
-
-            console.log(
-                `[BlogBoard] Loaded ${data.length} articles from ${category}`
-            );
 
 
             return data;
@@ -554,10 +545,6 @@ async function getBlogById(id) {
 
 async function getRecentBlogs(limit = 6) {
 
-    console.log(
-        '[BlogBoard] Loading recent articles...'
-    );
-
 
     const results =
         await Promise.allSettled(
@@ -655,10 +642,6 @@ async function getRecentBlogs(limit = 6) {
         uniqueArticles.slice(0, limit);
 
 
-    console.log(
-        `[BlogBoard] Recent articles loaded: ${recent.length}`
-    );
-
 
     return recent;
 }
@@ -687,11 +670,6 @@ async function getRecentBlogs(limit = 6) {
  */
 
 async function getTotalCount() {
-
-    console.log(
-        '[BlogBoard] Calculating total article count...'
-    );
-
 
     const results =
         await Promise.allSettled(
@@ -731,12 +709,6 @@ async function getTotalCount() {
     });
 
 
-    console.log(
-        '[BlogBoard] TOTAL ARTICLE COUNT:',
-        total
-    );
-
-
     return total;
 }
 
@@ -754,11 +726,6 @@ function clearBlogCache() {
 
     Object.keys(_pendingRequests).forEach(
         key => delete _pendingRequests[key]
-    );
-
-
-    console.log(
-        '[BlogBoard] Blog cache cleared.'
     );
 }
 

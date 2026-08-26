@@ -312,12 +312,6 @@ async function loadPost() {
             `${storageUrl}/${blog.file}`;
 
 
-        console.log(
-            '[BlogBoard] Loading article:',
-            articleUrl
-        );
-
-
         /*
          * Fetch Markdown
          */

@@ -76,11 +76,6 @@ async function loadStats() {
 
         const total = await getTotalCount();
 
-        console.log(
-            '[BlogBoard] Home page total articles:',
-            total
-        );
-
         animateCounter(
             'totalBlogs',
             total
@@ -203,11 +198,6 @@ async function loadRecentPosts() {
                 getRecentBlogs(6),
                 10000
             );
-
-        console.log(
-            '[BlogBoard] Latest articles loaded:',
-            recentPosts
-        );
 
         if (
             !Array.isArray(recentPosts) ||
