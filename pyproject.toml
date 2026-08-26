@@ -16,6 +16,7 @@ dependencies = [
     "pydantic-settings>=2.13.1",
     "python-dotenv>=1.2.1",
     "sentry-sdk>=2.0.0",
+    "supabase>=2.31.0",
     "uvicorn>=0.41.0",
 ]
 

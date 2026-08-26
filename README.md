@@ -1,119 +1,263 @@
-# <a href="https://kalyanm45.github.io/BlogBoard-AI-Blog-Generator/">BlogBoard — Autonomous AI Article Generator</a>
+# BlogBoard — Autonomous AI Blog Generator
 
-<p align="center"> <img src="https://img.shields.io/github/license/KalyanM45/BlogBoard-AI-Blog-Generator?style=ROUND" alt="License" /> <img src="https://img.shields.io/github/stars/KalyanM45/BlogBoard-AI-Blog-Generator?style=ROUND" alt="Stars" /> <img src="https://img.shields.io/github/forks/KalyanM45/BlogBoard-AI-Blog-Generator?style=ROUND" alt="Forks" /> <img src="https://img.shields.io/github/issues/KalyanM45/BlogBoard-AI-Blog-Generator?style=ROUND"alt="Issues" />
-</p>
+An intelligent, fully automated blogging platform that autonomously researches, writes, validates, and publishes technical articles on AI and Machine Learning using multi-agent workflows powered by LangGraph.
 
-## About The Project
+## 🌟 Features
 
-BlogBoard is an end-to-end, fully automated blogging platform. It autonomously schedules, writes, formats, and publishes deep-dive technical articles on Machine Learning and Artificial Intelligence directly to a fast, static frontend website.
+- **Multi-Agent Architecture**: Specialized agents for news research, tutorial generation, and content validation
+- **Autonomous Workflow**: End-to-end automation from research to publication
+- **Intelligent Domain Selection**: Automatically maps news to relevant tutorial categories
+- **Quality Assurance**: Built-in validation with iterative revision loops
+- **Cloud Storage**: Seamless integration with Supabase for article storage
+- **Observability**: Integrated monitoring with Sentry and Opik
+- **Static Frontend**: Clean, responsive web interface for article display
 
-Powered by **LangGraph** for stateful workflow execution and **Groq** for blazing-fast LLM inference, it ensures that high-quality, zero-fluff, production-grade articles are generated and deployed automatically via **GitHub Actions**.
+## 🏗️ Architecture
 
-## Library Requirements
+### Multi-Agent Pipeline
 
- - Python 3.12+
- - langgraph>=0.2.20
- - groq>=0.11.0
- - python-dotenv>=1.0.1
- - uv (for dependency management)
+```
+START
+  ↓
+News Agent (Research & Write AI News)
+  ↓
+News Validator
+  ├─ Reject → News Agent (Revision)
+  └─ Approve ↓
+Tutorial Agent (Select Domain & Write Tutorial)
+  ↓
+Tutorial Validator
+  ├─ Reject → Tutorial Agent (Revision)
+  └─ Approve ↓
+END (Publish to Supabase)
+```
 
-## Getting Started
+### Agents
 
-This will help you understand how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
+1. **News Agent**: Researches latest AI developments using web search tools and generates news articles
+2. **Tutorial Agent**: Analyzes news context, selects appropriate domain, and creates educational tutorials
+3. **Validator Agent**: Reviews content quality, generates metadata, and manages revisions (max 3 attempts)
 
-## Installation Steps
+### Content Domains
 
-### Installation from GitHub
+- **ainews**: AI News articles
+- **ml**: Machine Learning
+- **dl**: Deep Learning
+- **nlp**: Natural Language Processing
+- **cv**: Computer Vision
+- **genai**: Generative AI
+- **statistics**: Statistics for AI
 
-Follow these steps to install and set up the project directly from the GitHub repository:
+## 🚀 Getting Started
 
-1. **Clone the Repository**
-   - Open your terminal or command prompt.
-   - Navigate to the directory where you want to install the project.
-   - Run the following command to clone the GitHub repository:
-     ```bash
-     git clone https://github.com/KalyanM45/BlogBoard-AI-Blog-Generator.git
-     ```
+### Prerequisites
 
-2. **Create a Virtual Environment** (Recommended)
-   - It's a good practice to create a virtual environment to manage project dependencies. Run the following command:
-     ```bash
-     uv venv
-     ```
+- Python 3.13+
+- [uv](https://github.com/astral-sh/uv) (recommended for dependency management)
 
-3. **Activate the Virtual Environment**
-   - Activate the virtual environment based on your operating system:
-       ```bash
-       # On Linux/Mac:
-       source .venv/bin/activate
-       # On Windows:
-       .venv\Scripts\activate
-       ```
+### Installation
 
-4. **Install Dependencies**
-   - Navigate to the project directory:
-     ```bash
-     cd BlogBoard-AI-Blog-Generator
-     ```
-   - Run the following command to install project dependencies:
-     ```bash
-     uv pip install -r backend/requirements.txt
-     ```
+1. **Clone the repository**
+```bash
+git clone https://github.com/KalyanM45/BlogBoard-AI-Blog-Generator.git
+cd BlogBoard-AI-Blog-Generator
+```
 
-5. **Run the Project**
-   - Start the backend pipeline by running the appropriate command:
-     ```bash
-     python backend/run.py
-     ```
+2. **Create virtual environment**
+```bash
+uv venv
+```
 
-6. **Access the Project**
-   - Serve the frontend locally using Python's built-in HTTP server:
-     ```bash
-     python -m http.server 8000 --directory frontend
-     ```
-   - Open a web browser and navigate to `http://localhost:8000`.
+3. **Activate virtual environment**
+```bash
+# Windows
+.venv\Scripts\activate
 
+# Linux/Mac
+source .venv/bin/activate
+```
 
-## API Key Setup
+4. **Install dependencies**
+```bash
+uv pip install -e .
+```
 
-To use this project, you need an API key from Groq to power the Large Language Model inference. Follow these steps to obtain and set up your API key:
+### Configuration
 
-1. **Get API Key:**
-   - Visit the Groq Console at [console.groq.com](https://console.groq.com/).
-   - Follow the instructions to create an account and obtain your API key.
+Create a `.env` file in the project root:
 
-2. **Set Up API Key:**
-   - Create a file named `.env` in the project root.
-   - Add your API key to the `.env` file:
-     ```dotenv
-     GROQ_API_KEY=your_api_key_here
-     ```
+```env
+# LLM Settings
+llm__api_key=your_groq_or_openai_api_key
 
-   **Note:** Keep your API key confidential. Do not share it publicly or expose it in your code.<br>
+# Supabase Settings
+supabase__url=your_supabase_url
+supabase__key=your_supabase_key
+supabase__bucket_name=blogboard
 
-## Contributing
+# Content API Settings
+content__tavily_api_key=your_tavily_key
+content__guardian_api_key=your_guardian_key
+content__unsplash_api_key=your_unsplash_key
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+# Opik Settings (Optional)
+OPIK_API_KEY=your_opik_key
+OPIK_PROJECT_NAME=blogboard
 
-• **Report bugs**: If you encounter any bugs, please let us know. Open up an issue and let us know the problem.
+# Sentry (Optional)
+SENTRY_DSN=your_sentry_dsn
+```
 
-• **Contribute code**: If you are a developer and want to contribute, follow the instructions below to get started!
+## 📖 Usage
 
-1. Fork the Project
-2. Create your Feature Branch
-3. Commit your Changes
-4. Push to the Branch
+### Run Complete Pipeline
+
+Generate both news and tutorial articles for today:
+```bash
+python blogboard/run.py
+```
+
+### Custom Date
+
+Generate articles for a specific date:
+```bash
+python blogboard/run.py --date 2026-08-26
+```
+
+### Dry Run
+
+Test the pipeline without making actual LLM calls or storage writes:
+```bash
+python blogboard/run.py --dry-run
+```
+
+### News Pipeline Only
+
+Run only the AI news generation pipeline:
+```bash
+python blogboard/run.py --ainews
+```
+
+### View Frontend
+
+Serve the static website locally:
+```bash
+python -m http.server 8000 --directory blogboard/web
+```
+Then visit `http://localhost:8000`
+
+## 📂 Project Structure
+
+```
+BlogBoard-AI-Blog-Generator/
+├── blogboard/
+│   ├── agents/
+│   │   ├── news_agent/          # AI news research & generation
+│   │   ├── tutorial_agent/      # Tutorial domain selection & generation
+│   │   └── validator_agent/     # Content validation & metadata
+│   ├── config/
+│   │   └── settings.py          # Configuration management
+│   ├── graph/
+│   │   ├── graph.py             # LangGraph workflow definition
+│   │   └── state.py             # Shared state schema
+│   ├── services/
+│   │   ├── llm.py               # LLM service wrapper
+│   │   ├── storage.py           # Supabase storage service
+│   │   └── prompt_manager.py    # Prompt template management
+│   ├── tools/
+│   │   ├── tavily_search.py     # Tavily web search tool
+│   │   └── guardian_search.py   # Guardian API search tool
+│   ├── web/                     # Static frontend
+│   └── run.py                   # Main entry point
+├── .env.example                 # Environment variables template
+├── pyproject.toml              # Project dependencies
+└── README.md
+```
+
+## 🛠️ Tech Stack
+
+- **LangGraph**: Stateful workflow orchestration
+- **LangChain**: LLM framework and tool integration
+- **Groq/OpenAI**: LLM inference (configurable)
+- **Supabase**: Cloud storage for articles and metadata
+- **Sentry**: Error tracking and monitoring
+- **Opik**: LLM observability and tracing
+- **Python 3.13+**: Core language
+
+## 📊 Output
+
+Articles are stored in Supabase with the following structure:
+
+```
+blogs/
+├── ainews/
+│   ├── articles.json
+│   └── article-slug.md
+├── ml/
+│   ├── articles.json
+│   └── article-slug.md
+└── [other domains...]
+```
+
+Each `articles.json` contains metadata:
+```json
+{
+  "id": "blogs/ml/article-slug.md",
+  "category": "ml",
+  "article_type": "tutorial",
+  "topic": "Topic name",
+  "title": "Article Title",
+  "description": "Brief description",
+  "date": "2026-08-26",
+  "readTime": "5 min",
+  "tags": ["ml"],
+  "file": "blogs/ml/article-slug.md"
+}
+```
+
+## 🔧 Advanced Configuration
+
+### Custom LLM Model
+
+Modify `blogboard/config/settings.py`:
+```python
+MODEL_NAME: str = "openai/gpt-4"  # or any compatible model
+TEMPERATURE: float = 0.7
+```
+
+### Prompt Customization
+
+The system uses a prompt manager that supports:
+- Fallback prompts (hardcoded)
+- Custom prompt templates (via external files)
+
+Prompts are located in `blogboard/agents/*/prompts.py`
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-• **Suggestions**: If you don't want to code but have some awesome ideas, open up an issue explaining some updates or improvements you would like to see!
+## 📝 License
 
-#### Don't forget to give the project a star! Thanks again!
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## License
+## 🙏 Acknowledgements
 
-This project is licensed under the [MIT License](https://opensource.org/licenses/MIT) - see the [LICENSE](LICENSE) file for details.<br>
+- [LangGraph](https://github.com/langchain-ai/langgraph) for stateful workflow orchestration
+- [LangChain](https://github.com/langchain-ai/langchain) for LLM framework
+- [Groq](https://groq.com/) for blazing-fast inference
+- [Supabase](https://supabase.com/) for storage infrastructure
 
-## Acknowledgements
+## 📧 Contact
 
-We'd like to extend our gratitude to all individuals and organizations who have played a role in the development and success of this project. Your support, whether through contributions, inspiration, or encouragement, has been invaluable. Thank you for being a part of our journey.
+For questions or support, please open an issue on GitHub.
+
+---
+
+**Made with ❤️ by the BlogBoard Team**

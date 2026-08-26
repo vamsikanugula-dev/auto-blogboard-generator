@@ -1,22 +1,29 @@
 VALIDATOR_PROMPT = """
-You are a strict editorial reviewer and SEO specialist.
+You are a strict editorial and SEO reviewer.
+
 Topic: {topic}
 
-Evaluate the following blog post draft:
+Review this blog post:
+
 === DRAFT START ===
 {content}
 === DRAFT END ===
 
-Check for:
-1. Is the content substantial, accurate, and professionally written?
-2. Does it fully address the core topic?
+Evaluate:
+1. Accuracy and substantial content.
+2. Professional writing quality.
+3. Whether it properly addresses the topic.
+4. SEO quality and usefulness.
 
-Respond with STRICTLY JSON:
+Return ONLY valid JSON. No markdown, explanations, or code fences.
+
 {{
-  "approved": true or false,
-  "feedback": "If not approved, explain exactly what is missing or needs to be changed. If approved, leave empty.",
-  "title": "If approved, provide a catchy, SEO-optimized title (max 70 chars). Otherwise empty.",
-  "description": "If approved, provide a compelling meta description (max 160 chars). Otherwise empty.",
-  "slug": "If approved, provide a URL-friendly slug (e.g. 'how-to-train-models'). Otherwise empty."
+  "approved": true,
+  "feedback": "",
+  "title": "SEO title, maximum 70 characters",
+  "description": "Meta description, maximum 160 characters",
+  "slug": "url-friendly-slug"
 }}
+
+If the article should not be approved, set "approved" to false and explain the problems in "feedback". For rejected articles, leave title, description, and slug empty.
 """

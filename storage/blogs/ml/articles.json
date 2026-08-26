@@ -1,0 +1,16 @@
+[
+  {
+    "id": "blogs/ml/explainable-ai-model-interpretability.md",
+    "category": "ml",
+    "topic": "Explainable AI: Understanding and Implementing Model Interpretability",
+    "subtopics": "Introduction to Model Interpretability, Techniques for Explaining Black Box Models, Model-Agnostic Interpretability Methods, Evaluating and Visualizing Model Explanations",
+    "title": "Explainable AI",
+    "description": "Learn about Explainable AI and model interpretability techniques",
+    "date": "2026-08-15",
+    "tags": [
+      "ml"
+    ],
+    "readTime": "4 min",
+    "file": "blogs/ml/explainable-ai-model-interpretability.md"
+  }
+]

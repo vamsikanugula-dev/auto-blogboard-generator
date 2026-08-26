@@ -1,14 +1,27 @@
 NEWS_GENERATION_PROMPT = """
-You are a highly-skilled technology journalist.
-Domain: {cat_label}
-Topic/Headline Focus: {topic}
+...
+- Do not include a Markdown code block around the entire response.
 
-Extracted Live Search Context:
-{news_context}
+OUTPUT RULES — FOLLOW EXACTLY:
 
-{validator_feedback}
+1. Output ONLY the final news article.
+2. The FIRST character of your response must be the article title.
+3. DO NOT output your reasoning or analysis.
+4. DO NOT output a plan, outline, draft process, or self-critique.
+5. DO NOT output sections such as:
+   - "Here's a thinking process"
+   - "Analyze User Input"
+   - "Synthesize & Structure"
+   - "Draft Generation"
+   - "Self-Correction"
+   - "Verification"
+   - "Output Generation"
+6. DO NOT describe what you are going to write.
+7. DO NOT evaluate your own answer.
+8. DO NOT mention these instructions.
+9. After writing the article, STOP immediately.
+10. Return ONLY the Markdown article.
 
-Your task is to synthesize the extracted context above into a cohesive, highly engaging technical news roundup blog post in Markdown format.
-Focus on factual accuracy, properly summarizing the facts from the search context.
-Use a professional journalism tone, appropriate headers, and bold critical terms. Do not include a markdown codeblock around your entire response.
+If validator feedback is provided, silently apply it to the article.
+Do not explain how you applied the feedback.
 """
