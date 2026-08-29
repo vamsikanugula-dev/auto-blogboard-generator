@@ -3,6 +3,12 @@ import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
+# Windows consoles default to cp1252 and crash on emoji / non-ASCII model output.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 # ── Project paths ─────────────────────────────────────────────────────────────
 BACKEND_DIR = Path(__file__).parent
 ROOT_DIR = BACKEND_DIR.parent
@@ -137,6 +143,7 @@ Examples
 
         initial_state["domain"] = "ainews"
         initial_state["article_type"] = "ainews"
+        initial_state["news_only"] = True
 
         print("  Mode    : AI News pipeline")
 
@@ -212,12 +219,17 @@ Examples
         md_path = final_state.get("md_path", "?")
         read_time = final_state.get("read_time", "?")
 
-        print("  Pipeline completed successfully.")
-        print(f"  Final Title : {title}")
-        print(f"  Domain      : {domain}")
-        print(f"  Article Type: {article_type}")
-        print(f"  Read time   : {read_time}")
-        print(f"  File        : {md_path}")
+        if final_state.get("skipped"):
+            print("  Pipeline stopped without publishing.")
+            print(f"  Domain      : {domain}")
+            print(f"  Article Type: {article_type}")
+        else:
+            print("  Pipeline completed successfully.")
+            print(f"  Final Title : {title}")
+            print(f"  Domain      : {domain}")
+            print(f"  Article Type: {article_type}")
+            print(f"  Read time   : {read_time}")
+            print(f"  File        : {md_path}")
 
     print("=" * 55)
     print()

@@ -14,6 +14,7 @@ class BlogState(TypedDict, total=False):
     date: str
     schedule: Dict[str, Any]
     dry_run: bool
+    news_only: bool
 
     # ---------------------------------------------------------
     # Article Type

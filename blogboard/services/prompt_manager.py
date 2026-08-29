@@ -24,6 +24,11 @@ class PromptManager:
         Attempt to fetch and format a prompt from Opik.
         If it fails or Opik is unconfigured, format the fallback_prompt and return it.
         """
+        escaped = {
+            key: str(value).replace("{", "{{").replace("}", "}}")
+            for key, value in kwargs.items()
+        }
+
         if self.client:
             try:
                 prompt_obj = self.client.get_prompt(name=prompt_name)
@@ -33,6 +38,6 @@ class PromptManager:
                 logger.warning(f"[WARN] Failed to fetch prompt '{prompt_name}' from Opik. Falling back to local prompt. Error: {e}")
         
         # Fallback to local prompt
-        return fallback_prompt.format(**kwargs)
+        return fallback_prompt.format(**escaped)
 
 prompt_manager = PromptManager()

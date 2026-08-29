@@ -1,41 +1,19 @@
-
-import json
 import math
-import re
 
 from blogboard.graph.state import BlogState
 from blogboard.services.llm import LLMAgentService
 from blogboard.config.settings import app_settings
 from blogboard.services.prompt_manager import prompt_manager
+from blogboard.services.llm_output import (
+    strip_thinking,
+    try_parse_json_from_llm,
+)
 from .prompts import NEWS_GENERATION_PROMPT
 
 
 def _read_time(text: str) -> str:
     WORDS_PER_MINUTE = 200
     return f"{math.ceil(len(text.split()) / WORDS_PER_MINUTE)} min"
-
-
-def _clean_json_response(raw: str) -> str:
-    """
-    Remove Markdown code fences if the LLM returns JSON inside ```json ...```.
-    """
-    raw = raw.strip()
-
-    raw = re.sub(
-        r"^```json\s*",
-        "",
-        raw,
-        flags=re.IGNORECASE | re.MULTILINE
-    )
-
-    raw = re.sub(
-        r"^```\s*$",
-        "",
-        raw,
-        flags=re.MULTILINE
-    )
-
-    return raw.strip()
 
 
 def _extract_news_topic(news_summary: str, date: str) -> str:
@@ -82,17 +60,14 @@ Rules:
 """
 
     response = llm_service.llm.invoke(topic_prompt)
-    raw = _clean_json_response(response.content)
+    data = try_parse_json_from_llm(response.content)
 
-    try:
-        data = json.loads(raw)
+    if data:
         topic = data.get("topic")
-
         if topic and isinstance(topic, str):
             return topic.strip()
 
-    except json.JSONDecodeError:
-        print("  [WARN] Could not parse topic-selection JSON.")
+    print("  [WARN] Could not parse topic-selection JSON.")
 
     # Safe fallback
     return f"Latest AI Developments — {date}"
@@ -190,7 +165,7 @@ This research will be passed to another LLM that writes the final article.
             }
         )
 
-        news_summary = response["messages"][-1].content
+        news_summary = strip_thinking(response["messages"][-1].content)
 
         print(
             f"  [AGENT] Formulated research context "
@@ -246,13 +221,44 @@ This research will be passed to another LLM that writes the final article.
     llm_service_gen = LLMAgentService(temperature=0.4)
 
     res_gen = llm_service_gen.llm.invoke(prompt)
-    print("\n========== RAW NEWS MODEL OUTPUT ==========")
-    print(res_gen.content)
-    print("========== END RAW OUTPUT ==========\n")
+    content = strip_thinking(res_gen.content)
 
-    content = res_gen.content.strip()
+# ========== HARD FORMAT GUARD ==========
+    bad_signals = [
+    "here's a thinking process",
+    "thinking process:",
+    "self-correction",
+    "i will now write",
+    "let me draft",
+    "output matches the final response",
+    "proceeds.",
+    "self-critique",
+    ]
+
+    content_lower = content.lower()
+    if any(sig in content_lower for sig in bad_signals) or not content.strip().startswith(("#", "Title:")):
+        print("  [WARN] Detected thinking/planning text. Forcing clean rewrite...")
+
+        strict_prompt = f"""
+    OUTPUT ONLY THE FINAL MARKDOWN ARTICLE.
+    First line must be the title.
+    No thinking. No planning. No commentary. Nothing else.
+
+    Category: {cat_label}
+    Topic: {topic}
+
+    {validator_feedback}
+
+    Write the complete article now:
+    """
+        res_retry = llm_service_gen.llm.invoke(strict_prompt)
+        content = strip_thinking(res_retry.content)
+    # =======================================
+
+    print("\n========== NEWS ARTICLE PREVIEW ==========")
+    print(content[:800])
+    print("========== END PREVIEW ==========\n")
     rt = _read_time(content)
-
     print(
         f"  [AGENT] Generated "
         f"{len(content.split())} words. "

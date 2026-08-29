@@ -20,9 +20,12 @@ def _route_after_news_validator(state: BlogState) -> str:
         News Validator -> News Agent
         The News Agent revises the existing news article.
 
-    APPROVED:
+    APPROVED (full pipeline):
         News Validator -> Tutorial Agent
         The approved news context is passed to the Tutorial Agent.
+
+    APPROVED (news_only / --ainews):
+        News Validator -> END
     """
 
     if state.get("revision_needed", False):
@@ -31,6 +34,20 @@ def _route_after_news_validator(state: BlogState) -> str:
             "-> News Agent revision"
         )
         return "news_agent"
+
+    if state.get("skipped"):
+        print(
+            "  [GRAPH] News article was not published "
+            "-> Pipeline stopped"
+        )
+        return END
+
+    if state.get("news_only"):
+        print(
+            "  [GRAPH] News article approved "
+            "-> Pipeline complete (news only)"
+        )
+        return END
 
     print(
         "  [GRAPH] News article approved "
@@ -61,6 +78,13 @@ def _route_after_tutorial_validator(state: BlogState) -> str:
             "-> Tutorial Agent revision"
         )
         return "tutorial_agent"
+
+    if state.get("skipped"):
+        print(
+            "  [GRAPH] Tutorial article was not published "
+            "-> Pipeline stopped"
+        )
+        return END
 
     print(
         "  [GRAPH] Tutorial article approved "
@@ -180,6 +204,7 @@ def build_graph() -> StateGraph:
         {
             "news_agent": "news_agent",
             "tutorial_agent": "tutorial_agent",
+            END: END,
         }
     )
 

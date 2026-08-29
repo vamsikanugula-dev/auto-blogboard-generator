@@ -1,4 +1,3 @@
-import json
 import re
 from datetime import datetime, timezone, timedelta
 
@@ -6,6 +5,7 @@ from blogboard.graph.state import BlogState
 from blogboard.services.llm import LLMAgentService
 from blogboard.services.storage import SupabaseStorageService
 from blogboard.services.prompt_manager import prompt_manager
+from blogboard.services.llm_output import strip_thinking, try_parse_json_from_llm
 from .prompts import VALIDATOR_PROMPT
 
 
@@ -36,26 +36,6 @@ def _make_slug(value: str) -> str:
     slug = slug.strip("-")
 
     return slug[:120] or "untitled-article"
-
-
-def _clean_llm_json(raw: str) -> str:
-    """Remove common Markdown code fences around JSON."""
-    raw = raw.strip()
-
-    raw = re.sub(
-        r"^```(?:json)?\s*",
-        "",
-        raw,
-        flags=re.IGNORECASE
-    )
-
-    raw = re.sub(
-        r"\s*```$",
-        "",
-        raw
-    )
-
-    return raw.strip()
 
 
 def validator_node(state: BlogState) -> BlogState:
@@ -93,21 +73,14 @@ def validator_node(state: BlogState) -> BlogState:
     current_revision = state.get("revision_count", 0)
 
     topic = state.get("topic") or "Untitled Article"
-    content = state.get("content", "")
+    content = strip_thinking(state.get("content", ""))
 
     domain = state.get("domain")
-
-    # Read article_type from the state.
-    # NewsAgent should have already set this to "ainews".
     article_type = state.get("article_type", "blog")
-
     date = state.get("date") or _today_ist()
 
     # ─────────────────────────────────────────────────────────────
     # VALIDATE REQUIRED DOMAIN
-    #
-    # Validator must NEVER decide the domain.
-    # The generation agent is responsible for selecting it.
     # ─────────────────────────────────────────────────────────────
     if not domain:
         print("  [ERROR] No domain found in state.")
@@ -149,15 +122,14 @@ def validator_node(state: BlogState) -> BlogState:
 
     res = llm_service.llm.invoke(prompt)
 
-    raw = _clean_llm_json(res.content)
+    data = try_parse_json_from_llm(res.content)
+    parse_ok = data is not None
 
     # ─────────────────────────────────────────────────────────────
-    # PARSE VALIDATOR RESPONSE
+    # PARSE VALIDATOR RESPONSE (TOLERANT VERSION)
     # ─────────────────────────────────────────────────────────────
-    try:
-        data = json.loads(raw)
-
-        approved = bool(data.get("approved", True))
+    if parse_ok:
+        approved = bool(data.get("approved"))
 
         feedback = str(
             data.get("feedback", "") or ""
@@ -178,39 +150,48 @@ def validator_node(state: BlogState) -> BlogState:
 
         slug_value = _make_slug(requested_slug)
 
-    except (json.JSONDecodeError, TypeError, ValueError) as exc:
-
+    else:
         print(
             "  [WARN] Validator failed to return valid JSON. "
-            f"Using approval fallback. Error: {exc}"
+            "Using fallback approval logic (tolerant mode)."
         )
 
-        approved = True
-        feedback = ""
-
-        title = (
-            topic[:70].strip()
-            if topic
-            else "Untitled Article"
+        # ---------- TOLERANT FALLBACK ----------
+        content_clean = content.strip()
+        looks_ok = (
+            content_clean.startswith("#")
+            and len(content_clean.split()) > 80
+            and "<think>" not in content_clean.lower()
+            and "thinking process" not in content_clean.lower()
+            and "self-correction" not in content_clean.lower()
         )
 
-        description = (
-            f"A blog post about {title}"
-        )
+        if looks_ok:
+            approved = True
+            feedback = ""
+            print("  [VALIDATOR] Content looks clean → approving despite JSON failure.")
+        else:
+            approved = False
+            feedback = (
+                "The draft could not be reviewed as structured output and "
+                "does not look clean enough. Rewrite as pure Markdown only: "
+                "start with the title, no reasoning or thinking traces."
+            )
 
+        title = topic[:70].strip() if topic else "Untitled Article"
+        description = f"A blog post about {title}"
         slug_value = _make_slug(title)
 
     # ─────────────────────────────────────────────────────────────
-    # REVISION LIMIT
+    # REVISION LIMIT (ALWAYS FORCE APPROVE AFTER MAX)
     # ─────────────────────────────────────────────────────────────
     MAX_REVISIONS = 3
 
     if not approved and current_revision >= MAX_REVISIONS:
         print(
             "  [WARN] Maximum revisions reached. "
-            "Forcing approval."
+            "Forcing approval (tolerant mode)."
         )
-
         approved = True
 
     revision_needed = not approved
@@ -256,11 +237,16 @@ def validator_node(state: BlogState) -> BlogState:
     # ─────────────────────────────────────────────────────────────
     # SAVE MARKDOWN ARTICLE
     # ─────────────────────────────────────────────────────────────
-    storage.put_object(
+    uploaded = storage.put_object(
         md_relative,
         content,
         content_type="text/markdown"
     )
+
+    if not uploaded:
+        raise RuntimeError(
+            f"Failed to upload article markdown: {md_relative}"
+        )
 
     print(
         f"  [STORAGE] Saved article: {md_relative}"
@@ -275,8 +261,6 @@ def validator_node(state: BlogState) -> BlogState:
         articles = []
 
     # Remove an existing entry with the same ID OR file path.
-    # This prevents duplicate registry entries if the same article
-    # is regenerated.
     articles = [
         article
         for article in articles
@@ -291,13 +275,8 @@ def validator_node(state: BlogState) -> BlogState:
     # ─────────────────────────────────────────────────────────────
     article_metadata = {
         "id": md_relative,
-
-        # Existing category/domain
         "category": domain,
-
-        # New article type
         "article_type": article_type,
-
         "topic": topic,
         "subtopics": state.get("subtopics", ""),
         "title": title,
@@ -322,10 +301,15 @@ def validator_node(state: BlogState) -> BlogState:
     # ─────────────────────────────────────────────────────────────
     # SAVE ARTICLES.JSON
     # ─────────────────────────────────────────────────────────────
-    storage.save_articles_json(
+    registry_saved = storage.save_articles_json(
         domain,
         articles
     )
+
+    if not registry_saved:
+        raise RuntimeError(
+            f"Failed to update article registry: blogs/{domain}/articles.json"
+        )
 
     print(
         f"  [STORAGE] Updated blogs/{domain}/articles.json"
@@ -336,13 +320,11 @@ def validator_node(state: BlogState) -> BlogState:
     # ─────────────────────────────────────────────────────────────
     return {
         **state,
-
         "domain": domain,
         "article_type": article_type,
-
         "revision_needed": False,
         "validator_feedback": "",
-
+        "revision_count": 0,
         "title": title,
         "description": description,
         "slug": slug_value,

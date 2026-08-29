@@ -6,6 +6,8 @@ from langgraph.prebuilt import create_react_agent
 
 from blogboard.config.settings import app_settings
 from blogboard.tools import TavilySearchTool, GuardianSearchTool
+from blogboard.tools.arxiv_tool import ArxivSearchTool
+from blogboard.tools.semantic_scholar_tool import SemanticScholarTool
 
 
 class LLMAgentService:
@@ -58,6 +60,8 @@ class LLMAgentService:
         """
 
         news_tools: List[BaseTool] = [
+            ArxivSearchTool(),
+            SemanticScholarTool(),
             TavilySearchTool(),
             GuardianSearchTool(),
         ]

@@ -1,13 +1,21 @@
 # BlogBoard — Autonomous AI Blog Generator
 
-An intelligent, fully automated blogging platform that autonomously researches, writes, validates, and publishes technical articles on AI and Machine Learning using multi-agent workflows powered by LangGraph.
+An intelligent, fully automated blogging platform that autonomously researches, writes, validates, and publishes high-quality technical articles on AI and Machine Learning using multi-agent workflows powered by LangGraph.
 
 ## 🌟 Features
 
 - **Multi-Agent Architecture**: Specialized agents for news research, tutorial generation, and content validation
 - **Autonomous Workflow**: End-to-end automation from research to publication
+- **Advanced Research Tools**:
+  - Tavily + The Guardian (general & journalistic news)
+  - **arXiv** + **Semantic Scholar** (deep technical research papers)
 - **Intelligent Domain Selection**: Automatically maps news to relevant tutorial categories
-- **Quality Assurance**: Built-in validation with iterative revision loops
+- **Rich Tutorial Generation**: Tutorials are enriched with real research papers from arXiv and Semantic Scholar
+- **Robust Quality Control**:
+  - Strong output cleaning (`strip_thinking`)
+  - Hard format guards against reasoning/thinking traces
+  - Tolerant Validator with fallback approval logic
+  - Iterative revision loops (max 3 attempts)
 - **Cloud Storage**: Seamless integration with Supabase for article storage
 - **Observability**: Integrated monitoring with Sentry and Opik
 - **Static Frontend**: Clean, responsive web interface for article display
@@ -15,45 +23,51 @@ An intelligent, fully automated blogging platform that autonomously researches, 
 ## 🏗️ Architecture
 
 ### Multi-Agent Pipeline
-
-```
 START
-  ↓
-News Agent (Research & Write AI News)
-  ↓
-News Validator
-  ├─ Reject → News Agent (Revision)
-  └─ Approve ↓
-Tutorial Agent (Select Domain & Write Tutorial)
-  ↓
-Tutorial Validator
-  ├─ Reject → Tutorial Agent (Revision)
-  └─ Approve ↓
+↓
+News Agent (Research with Tavily/Guardian + Write AI News)
+↓
+News Validator (Tolerant mode)
+├─ Reject → News Agent (Revision)
+└─ Approve ↓
+Tutorial Agent
+├─ Select Domain from News
+├─ Research papers (arXiv + Semantic Scholar)
+└─ Write rich educational Tutorial
+↓
+Tutorial Validator (Tolerant mode)
+├─ Reject → Tutorial Agent (Revision)
+└─ Approve ↓
 END (Publish to Supabase)
-```
+text### Agents
 
-### Agents
+1. **News Agent**  
+   Researches latest AI developments using web search tools and generates clean news articles.
 
-1. **News Agent**: Researches latest AI developments using web search tools and generates news articles
-2. **Tutorial Agent**: Analyzes news context, selects appropriate domain, and creates educational tutorials
-3. **Validator Agent**: Reviews content quality, generates metadata, and manages revisions (max 3 attempts)
+2. **Tutorial Agent**  
+   - Analyzes news context and selects the best domain  
+   - Performs additional research using **arXiv** and **Semantic Scholar**  
+   - Generates in-depth educational tutorials enriched with real papers
+
+3. **Validator Agent**  
+   Reviews content quality, cleans thinking traces, generates SEO metadata, and manages revisions. Now includes **tolerant fallback logic** so good articles are not rejected just because of JSON parsing issues.
 
 ### Content Domains
 
-- **ainews**: AI News articles
-- **ml**: Machine Learning
-- **dl**: Deep Learning
-- **nlp**: Natural Language Processing
-- **cv**: Computer Vision
-- **genai**: Generative AI
-- **statistics**: Statistics for AI
+- `ainews` — AI News articles  
+- `ml` — Machine Learning  
+- `dl` — Deep Learning  
+- `nlp` — Natural Language Processing  
+- `cv` — Computer Vision  
+- `genai` — Generative AI  
+- `statistics` — Statistics for AI  
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
 - Python 3.13+
-- [uv](https://github.com/astral-sh/uv) (recommended for dependency management)
+- [uv](https://github.com/astral-sh/uv) (recommended)
 
 ### Installation
 
@@ -61,34 +75,27 @@ END (Publish to Supabase)
 ```bash
 git clone https://github.com/vamsikanugula-dev/auto-blogboard-generator.git
 cd auto-blogboard-generator
-```
 
-2. **Create virtual environment**
-```bash
-uv venv
-```
+Create and activate virtual environment
 
-3. **Activate virtual environment**
-```bash
+Bashuv venv
+
 # Windows
 .venv\Scripts\activate
 
 # Linux/Mac
 source .venv/bin/activate
-```
 
-4. **Install dependencies**
-```bash
+Install dependencies
+
+Bashuv sync
+# or
 uv pip install -e .
-```
-
-### Configuration
-
-Create a `.env` file in the project root:
-
-```env
-# LLM Settings
-llm__api_key=your_groq_or_openai_api_key
+Configuration
+Create a .env file in the project root:
+env# LLM Settings
+llm__api_key=your_groq_api_key
+llm__model_name=llama-3.3-70b-versatile   # Recommended (avoid pure reasoning models)
 
 # Supabase Settings
 supabase__url=your_supabase_url
@@ -98,7 +105,7 @@ supabase__bucket_name=blogboard
 # Content API Settings
 content__tavily_api_key=your_tavily_key
 content__guardian_api_key=your_guardian_key
-content__unsplash_api_key=your_unsplash_key
+content__semantic_scholar_api_key=your_semantic_scholar_key   # Optional but recommended
 
 # Opik Settings (Optional)
 OPIK_API_KEY=your_opik_key
@@ -106,158 +113,79 @@ OPIK_PROJECT_NAME=blogboard
 
 # Sentry (Optional)
 SENTRY_DSN=your_sentry_dsn
-```
-
-## 📖 Usage
-
-### Run Complete Pipeline
-
-Generate both news and tutorial articles for today:
-```bash
-python blogboard/run.py
-```
-
-### Custom Date
-
-Generate articles for a specific date:
-```bash
-python blogboard/run.py --date 2026-08-26
-```
-
-### Dry Run
-
-Test the pipeline without making actual LLM calls or storage writes:
-```bash
-python blogboard/run.py --dry-run
-```
-
-### News Pipeline Only
-
-Run only the AI news generation pipeline:
-```bash
-python blogboard/run.py --ainews
-```
-
-### View Frontend
-
-Serve the static website locally:
-```bash
-python -m http.server 8000 --directory blogboard/web
-```
-Then visit `http://localhost:8000`
-
-## 📂 Project Structure
-
-```
-BlogBoard-AI-Blog-Generator/
+Note: arXiv requires no API key. Semantic Scholar works without a key but has higher rate limits with one.
+📖 Usage
+Run Complete Pipeline
+Bashuv run python blogboard/run.py
+Custom Date
+Bashuv run python blogboard/run.py --date 2026-08-29
+Dry Run
+Bashuv run python blogboard/run.py --dry-run
+News Only
+Bashuv run python blogboard/run.py --ainews
+View Frontend
+Bashpython -m http.server 8000 --directory blogboard/web
+Then open http://localhost:8000
+📂 Project Structure
+textBlogBoard-AI-Blog-Generator/
 ├── blogboard/
 │   ├── agents/
-│   │   ├── news_agent/          # AI news research & generation
-│   │   ├── tutorial_agent/      # Tutorial domain selection & generation
-│   │   └── validator_agent/     # Content validation & metadata
+│   │   ├── news_agent/               # AI news research & generation
+│   │   ├── tutorial_agent/           # Domain selection + research + tutorial writing
+│   │   └── validator_agent/          # Tolerant validation + metadata
 │   ├── config/
-│   │   └── settings.py          # Configuration management
+│   │   └── settings.py
 │   ├── graph/
-│   │   ├── graph.py             # LangGraph workflow definition
-│   │   └── state.py             # Shared state schema
+│   │   ├── graph.py
+│   │   └── state.py
 │   ├── services/
-│   │   ├── llm.py               # LLM service wrapper
-│   │   ├── storage.py           # Supabase storage service
-│   │   └── prompt_manager.py    # Prompt template management
+│   │   ├── llm.py
+│   │   ├── llm_output.py             # strip_thinking + JSON parser
+│   │   ├── storage.py
+│   │   └── prompt_manager.py
 │   ├── tools/
-│   │   ├── tavily_search.py     # Tavily web search tool
-│   │   └── guardian_search.py   # Guardian API search tool
-│   ├── web/                     # Static frontend
-│   └── run.py                   # Main entry point
-├── .env.example                 # Environment variables template
-├── pyproject.toml              # Project dependencies
+│   │   ├── tavily_tool.py
+│   │   ├── guardian_tool.py
+│   │   ├── arxiv_tool.py             # ← New
+│   │   └── semantic_scholar_tool.py  # ← New
+│   ├── web/
+│   └── run.py
+├── pyproject.toml
+├── uv.lock
 └── README.md
-```
+🛠️ Tech Stack
 
-## 🛠️ Tech Stack
+LangGraph — Stateful multi-agent orchestration
+LangChain — Tool calling & LLM framework
+Groq — Fast LLM inference
+arXiv API + Semantic Scholar API — Research paper retrieval
+Tavily + The Guardian — News research
+Supabase — Article & metadata storage
+uv — Fast dependency management
+Sentry + Opik — Observability
 
-- **LangGraph**: Stateful workflow orchestration
-- **LangChain**: LLM framework and tool integration
-- **Groq/OpenAI**: LLM inference (configurable)
-- **Supabase**: Cloud storage for articles and metadata
-- **Sentry**: Error tracking and monitoring
-- **Opik**: LLM observability and tracing
-- **Python 3.13+**: Core language
-
-## 📊 Output
-
-Articles are stored in Supabase with the following structure:
-
-```
-blogs/
+📊 Output Structure
+textblogs/
 ├── ainews/
 │   ├── articles.json
-│   └── article-slug.md
-├── ml/
+│   └── some-news-slug.md
+├── nlp/
 │   ├── articles.json
-│   └── article-slug.md
-└── [other domains...]
-```
+│   └── emerging-concepts-in-nlp.md
+└── ...
+🔧 Key Improvements (Recent)
 
-Each `articles.json` contains metadata:
-```json
-{
-  "id": "blogs/ml/article-slug.md",
-  "category": "ml",
-  "article_type": "tutorial",
-  "topic": "Topic name",
-  "title": "Article Title",
-  "description": "Brief description",
-  "date": "2026-08-26",
-  "readTime": "5 min",
-  "tags": ["ml"],
-  "file": "blogs/ml/article-slug.md"
-}
-```
+Added arXiv and Semantic Scholar tools for deep technical research
+Tutorial Agent now automatically researches relevant papers
+Stronger strip_thinking to remove <think> and reasoning traces
+Hard format guards in both News and Tutorial agents
+More tolerant Validator (no longer rejects good articles due to JSON failures)
+Better prompts that force clean Markdown output
+Emergency fallback content so articles are never completely empty
 
-## 🔧 Advanced Configuration
+🤝 Contributing
+Contributions are welcome! Feel free to open issues or submit pull requests.
+📝 License
+This project is licensed under the MIT License.
 
-### Custom LLM Model
-
-Modify `blogboard/config/settings.py`:
-```python
-MODEL_NAME: str = "openai/gpt-4"  # or any compatible model
-TEMPERATURE: float = 0.7
-```
-
-### Prompt Customization
-
-The system uses a prompt manager that supports:
-- Fallback prompts (hardcoded)
-- Custom prompt templates (via external files)
-
-Prompts are located in `blogboard/agents/*/prompts.py`
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgements
-
-- [LangGraph](https://github.com/langchain-ai/langgraph) for stateful workflow orchestration
-- [LangChain](https://github.com/langchain-ai/langchain) for LLM framework
-- [Groq](https://groq.com/) for blazing-fast inference
-- [Supabase](https://supabase.com/) for storage infrastructure
-
-## 📧 Contact
-
-For questions or support, please open an issue on GitHub.
-
----
-
-**Made with ❤️ by the BlogBoard Team**
+Made with ❤️ for the AI community
