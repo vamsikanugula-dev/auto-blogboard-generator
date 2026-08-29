@@ -1,5 +1,9 @@
 import os
 import logging
+import sys
+
+# Setup logging to see all messages
+logging.basicConfig(level=logging.DEBUG, format='%(levelname)s - %(message)s')
 
 try:
     from opik import Opik
@@ -35,4 +39,24 @@ class PromptManager:
         # Fallback to local prompt
         return fallback_prompt.format(**kwargs)
 
-prompt_manager = PromptManager()
+# Test the prompt manager
+print("=" * 60)
+print("Testing PromptManager")
+print("=" * 60)
+
+# Create instance
+pm = PromptManager()
+print("[OK] PromptManager instance created successfully")
+print(f"  - Opik Available: {OPIK_AVAILABLE}")
+print(f"  - Opik API Key Set: {bool(os.getenv('OPIK_API_KEY'))}")
+print(f"  - Client Initialized: {pm.client is not None}")
+
+# Test get_prompt with fallback
+fallback = "This is a {type} prompt"
+result = pm.get_prompt("test_prompt", fallback, type="test")
+print(f"\n[OK] get_prompt() executed successfully")
+print(f"  - Result: {result}")
+
+print("\n" + "=" * 60)
+print("[OK] All tests passed! No errors detected.")
+print("=" * 60)

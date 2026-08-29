@@ -15,7 +15,7 @@ class LLMSettings(BaseModel):
         )
     )
 
-    MODEL_NAME: str = "openai/gpt-oss-20b"
+    MODEL_NAME: str = "qwen/qwen3.6-27b"
 
     TEMPERATURE: float = 1.0
 

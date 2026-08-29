@@ -27,7 +27,7 @@ class SupabaseStorageService:
             app_settings.supabase.BUCKET_NAME.strip()
         )
 
-        print("  ☁️ Storage: Supabase")
+        print("  [Storage] Supabase")
 
     def get_object(self, key: str) -> Optional[str]:
         """Fetch raw string data from Supabase Storage."""
@@ -70,7 +70,7 @@ class SupabaseStorageService:
             )
 
             print(
-                f"  ☁️ Uploaded to Supabase: "
+                f"  [Storage] Uploaded to Supabase: "
                 f"{self.bucket_name}/{key}"
             )
 
