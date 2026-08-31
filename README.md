@@ -158,13 +158,3 @@ Author: Vamsi Kanugula
 
 GitHub · LinkedIn
 text---
-
-### Next Actions for You
-
-1. Replace your current README with the version above.
-2. Add 2–3 sample generated articles (or screenshots) under a new section called **“Sample Outputs”**.
-3. Fix any broken code blocks in the Installation section (I already cleaned them).
-
-Would you like me to also give you:
-- A short LinkedIn post for the BlogBoard project?
-- Or help you add a “Sample Outputs” section?
