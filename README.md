@@ -156,5 +156,5 @@ This project is licensed under the MIT License.
 
 Author: Vamsi Kanugula
 
-GitHub · LinkedIn
-text---
+GitHub: https://github.com/vamsikanugula-dev/auto-blogboard-generator
+LinkedIn: https://www.linkedin.com/in/vamsi-kanugula-1747aa331/
