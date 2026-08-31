@@ -49,29 +49,10 @@ Tutorial Validator
        ↓
 Publish to Supabase → END
 Agents
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
 AgentResponsibilityNews AgentResearch latest AI news and generate clean articlesTutorial AgentSelect domain + research papers + write tutorialsValidator AgentQuality check, SEO metadata, revision management
 
+```text
 📂 Project Structure
 textauto-blogboard-generator/
 ├── blogboard/
@@ -89,6 +70,7 @@ textauto-blogboard-generator/
 ├── pyproject.toml
 ├── uv.lock
 └── README.md
+```
 
 🛠️ Tech Stack
 
@@ -145,6 +127,7 @@ View Frontend
 Bashpython -m http.server 8000 --directory blogboard/web
 Then open → http://localhost:8000
 
+```text
 📊 Output Structure
 textstorage/blogs/
 ├── ainews/
@@ -156,6 +139,7 @@ textstorage/blogs/
 ├── cv/
 ├── genai/
 └── statistics/
+```
 
 🔧 Recent Improvements
 
